@@ -1,23 +1,31 @@
-const express = require('express')
-const path= require('path')
-const app = express()
-const PORT = process.env.PORT || 3000
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const config = require('./config');
+const Users = require('./routers/users');
+const Products = require('./routers/products');
+const Categories = require('./routers/categories');
+const app = express();
 
-app.set('view engine', 'ejs')
+const port = process.env.PORT || 8000;
 
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(__dirname + '/public'));
+app.use(cors({origin: 'http://localhost:3000' || 'https://popov-evgeny.github.io/shop-app/'}));
+app.use(express.json());
+app.use(express.static('public'));
+app.use('/users', Users);
+app.use('/product', Products);
+app.use('/categories', Categories);
 
-app.get('/', (req, res) => {
-  res.render('index')
-})
+const run = async () => {
+  await mongoose.connect(config.mongo.db, config.mongo.options);
 
-app.get('/about', (req, res) => {
-  res.render('about')
-})
+  app.listen(port, () => {
+    console.log(`Server started on ${port} port!`);
+  });
 
+  process.on('exit', () => {
+    mongoose.disconnect();
+  });
+};
 
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
-})
+run().catch(e => console.error(e));
